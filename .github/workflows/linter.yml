@@ -1,9 +1,12 @@
 name: 'Lint Code'
+
 on:
   push:
     branches: [master, main]
   pull_request:
     branches: [master, main]
+  workflow_dispatch:
+    
 jobs: # list of things to do
   lint_function_js:
     name: Linting JavaScript Function 
@@ -39,6 +42,7 @@ jobs: # list of things to do
       - name: Lint with Pylint
         run: pylint *.py
         working-directory: functions/sample/python
+        
   lint_django_server:
     name: Linting Django Server 
     runs-on: ubuntu-latest
