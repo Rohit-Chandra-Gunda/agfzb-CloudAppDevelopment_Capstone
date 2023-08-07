@@ -94,17 +94,16 @@ def add_review(request, id):
     
     if request.method == 'GET':
         cars = CarModel.objects.all()
-        print(cars)
         context["cars"] = cars
-        
+        print(cars)
         return render(request, 'djangoapp/add_review.html', context)
     elif request.method == 'POST':
         if request.user.is_authenticated:
             username = request.user.username
             print(request.POST)
             payload = dict()
-            car_id = request.POST["car"]
-            car = CarModel.objects.get(pk=car_id)
+            car_name = request.POST["car"]
+            car = CarModel.objects.get(name=car_name)
             payload["time"] = datetime.utcnow().isoformat()
             payload["name"] = username
             payload["dealership"] = id
@@ -115,9 +114,9 @@ def add_review(request, id):
                 if request.POST["purchasecheck"] == 'on':
                     payload["purchase"] = True
             payload["purchase_date"] = request.POST["purchasedate"]
-            payload["car_make"] = car.car_make.make_name
-            payload["car_model"] = car.car_model
-            payload["car_year"] = int(car.car_year)
+            payload["car_make"] = car.carmake.name
+            payload["car_model"] = car.cartype
+            payload["car_year"] = int(car.year)
 
             new_payload = {}
             new_payload["review"] = payload

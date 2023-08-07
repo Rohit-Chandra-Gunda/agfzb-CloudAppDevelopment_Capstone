@@ -109,11 +109,8 @@ def analyze_review_sentiments(text):
         text=text,
         features= Features(sentiment= SentimentOptions())
     ).get_result()
-    print(json.dumps(response))
     sentiment_score = str(response["sentiment"]["document"]["score"])
     sentiment_label = response["sentiment"]["document"]["label"]
-    print(sentiment_score)
-    print(sentiment_label)
     sentimentresult = sentiment_label
     
     return sentimentresult
