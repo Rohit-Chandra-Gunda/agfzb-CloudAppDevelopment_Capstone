@@ -35,6 +35,7 @@ def post_request(url, json_payload, **kwargs):
 def get_dealers_from_cf(url, **kwargs):
     results = []
     state = kwargs.get("state")
+    id = kwargs.get("id")
     if state:
         json_result = get_request(url, state=state)
     else:
@@ -51,26 +52,44 @@ def get_dealers_from_cf(url, **kwargs):
             results.append(dealer_obj)
     return results
 
-def get_dealer_reviews_by_id_from_cf(url, dealerId):
-    results = []
-    json_result = get_request(url, dealerId=dealerId)
+def get_dealer_by_id_from_cf(url, id):
+    json_result = get_request(url, id=id)
     if json_result:
-        reviews = json_result['entries']
-        for review in reviews:
-            try:
-                review_obj = models.DealerReview(name = review["name"], 
-                dealership = review["dealership"], review = review["review"], purchase=review["purchase"],
-                purchase_date = review["purchase_date"], car_make = review['car_make'],
-                car_model = review['car_model'], car_year= review['car_year'], sentiment= "none")
-            except:
-                review_obj = models.DealerReview(name = review["name"], 
-                dealership = review["dealership"], review = review["review"], purchase=review["purchase"],
-                purchase_date = 'none', car_make = 'none',
-                car_model = 'none', car_year= 'none', sentiment= "none")
-                
-            review_obj.sentiment = analyze_review_sentiments(review_obj.review)
-            print(review_obj.sentiment)
-                    
+        dealers = json_result
+        
+        dealer_doc = dealers[0] 
+        dealer_obj = CarDealer(address=dealer_doc["address"], city=dealer_doc["city"],full_name=dealer_doc["full_name"],
+                                id=dealer_doc["id"], lat=dealer_doc["lat"], long=dealer_doc["long"],
+                                short_name=dealer_doc["short_name"], st=dealer_doc["st"], zip=dealer_doc["zip"])
+    return dealer_obj
+
+def get_dealer_reviews_from_cf(url, **kwargs):
+    results = []
+    id = kwargs.get("id")
+
+    if id:
+        json_result = get_request(url, id=id)
+    else:
+        json_result = get_request(url)
+    
+    if json_result:
+        reviews = json_result["data"]["docs"]
+        for dealer_review in reviews:
+            review_obj = DealerReview(
+                dealership=dealer_review["dealership"],
+                name=dealer_review["name"],
+                purchase=dealer_review["purchase"],
+                review=dealer_review["review"], 
+                id=dealer_review["id"],
+                purchase_date = dealer_review["purchase_date"],
+                car_make = dealer_review["car_make"],
+                car_model = dealer_review["car_model"],
+                car_year = dealer_review["car_year"],
+                sentiment = "None"
+            )
+            
+            sentiment = analyze_review_sentiments(review_obj.review)
+            review_obj.sentiment = sentiment
             results.append(review_obj)
 
     return results

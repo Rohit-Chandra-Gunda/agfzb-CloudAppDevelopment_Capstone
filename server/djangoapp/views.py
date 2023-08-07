@@ -3,7 +3,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render, redirect
 from .models import CarModel, CarMake, CarDealer, DealerReview
-from .restapis import get_dealers_from_cf, post_request
+from .restapis import *
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from datetime import datetime
@@ -70,14 +70,58 @@ def get_dealerships(request):
         context = {}
         url = "https://au-syd.functions.appdomain.cloud/api/v1/web/e3e4bac1-45ac-4161-a0dd-42f3422594a9/dealership-package/get-dealership"
         dealerships = get_dealers_from_cf(url)
-        context["dealership_list"] = dealerships
+        context["dealerships"] = dealerships
         return render(request, 'djangoapp/index.html', context)
 
-# Create a `get_dealer_details` view to render the reviews of a dealer
-# def get_dealer_details(request, dealer_id):
-# ...
+def get_dealer_details(request, id):
+    if request.method == "GET":
+        context = {}
+        dealer_url = "https://au-syd.functions.appdomain.cloud/api/v1/web/e3e4bac1-45ac-4161-a0dd-42f3422594a9/dealership-package/get-dealership"
+        dealer = get_dealer_by_id_from_cf(dealer_url, id=id)
+        context["dealer"] = dealer
+        
+        review_url = "https://au-syd.functions.appdomain.cloud/api/v1/web/e3e4bac1-45ac-4161-a0dd-42f3422594a9/dealership-package/get-review"
+        reviews = get_dealer_reviews_from_cf(review_url, id=id)
+        context["reviews"] = reviews
 
-# Create a `add_review` view to submit a review
-# def add_review(request, dealer_id):
-# ...
+        return render(request, 'djangoapp/dealer_details.html', context)
 
+def add_review(request, id):
+    context = {}
+    dealer_url = "https://au-syd.functions.appdomain.cloud/api/v1/web/e3e4bac1-45ac-4161-a0dd-42f3422594a9/dealership-package/get-dealership"
+    dealer = get_dealer_by_id_from_cf(dealer_url, id=id)
+    context["dealer"] = dealer
+    
+    if request.method == 'GET':
+        cars = CarModel.objects.all()
+        print(cars)
+        context["cars"] = cars
+        
+        return render(request, 'djangoapp/add_review.html', context)
+    elif request.method == 'POST':
+        if request.user.is_authenticated:
+            username = request.user.username
+            print(request.POST)
+            payload = dict()
+            car_id = request.POST["car"]
+            car = CarModel.objects.get(pk=car_id)
+            payload["time"] = datetime.utcnow().isoformat()
+            payload["name"] = username
+            payload["dealership"] = id
+            payload["id"] = id
+            payload["review"] = request.POST["content"]
+            payload["purchase"] = False
+            if "purchasecheck" in request.POST:
+                if request.POST["purchasecheck"] == 'on':
+                    payload["purchase"] = True
+            payload["purchase_date"] = request.POST["purchasedate"]
+            payload["car_make"] = car.car_make.make_name
+            payload["car_model"] = car.car_model
+            payload["car_year"] = int(car.car_year)
+
+            new_payload = {}
+            new_payload["review"] = payload
+            review_post_url =  "https://au-syd.functions.appdomain.cloud/api/v1/web/e3e4bac1-45ac-4161-a0dd-42f3422594a9/dealership-package/post-review"
+            post_request(review_post_url, new_payload, id=id)
+
+        return redirect("djangoapp:dealer_details", id=id)
