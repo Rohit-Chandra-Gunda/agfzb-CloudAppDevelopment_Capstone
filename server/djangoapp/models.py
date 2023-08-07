@@ -36,8 +36,7 @@ class CarDealer:
         self.short_name = short_name
         self.st = st
         self.zip = zip
-        self.idx = 0
-
+        
     def __str__(self):
         return "Dealer name: " + self.full_name
 
