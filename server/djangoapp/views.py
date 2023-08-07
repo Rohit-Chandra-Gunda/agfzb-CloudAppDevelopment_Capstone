@@ -93,7 +93,7 @@ def add_review(request, id):
     context["dealer"] = dealer
     
     if request.method == 'GET':
-        cars = CarModel.objects.all()
+        cars = CarModel.objects.filter(dealerid = id)
         context["cars"] = cars
         print(cars)
         return render(request, 'djangoapp/add_review.html', context)
@@ -103,7 +103,9 @@ def add_review(request, id):
             print(request.POST)
             payload = dict()
             car_name = request.POST["car"]
-            car = CarModel.objects.get(name=car_name)
+            print("Car name!")
+            print(car_name)
+            car = CarModel.objects.get(name = car_name)
             payload["time"] = datetime.utcnow().isoformat()
             payload["name"] = username
             payload["dealership"] = id
@@ -116,7 +118,7 @@ def add_review(request, id):
             payload["purchase_date"] = request.POST["purchasedate"]
             payload["car_make"] = car.carmake.name
             payload["car_model"] = car.cartype
-            payload["car_year"] = int(car.year)
+            payload["car_year"] = car.year.year
 
             new_payload = {}
             new_payload["review"] = payload
