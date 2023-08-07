@@ -71,6 +71,7 @@ def get_dealerships(request):
         url = "https://au-syd.functions.appdomain.cloud/api/v1/web/e3e4bac1-45ac-4161-a0dd-42f3422594a9/dealership-package/get-dealership"
         dealerships = get_dealers_from_cf(url)
         context["dealerships"] = dealerships
+        print(dealerships)
         return render(request, 'djangoapp/index.html', context)
 
 def get_dealer_details(request, id):

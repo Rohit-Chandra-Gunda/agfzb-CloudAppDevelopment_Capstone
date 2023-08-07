@@ -23,11 +23,9 @@ def get_request(url, **kwargs):
     return json_data
 
 def post_request(url, json_payload, **kwargs):
-    json_obj = json_payload["review"]
-    print(json_obj)
     print(kwargs)
     try:
-        response = requests.post(url, json=json_obj, params=kwargs)
+        response = requests.post(url, json=json_payload, params=kwargs)
     except:
         print("Something went wrong")
     print (response)
